@@ -13,6 +13,7 @@ module "updates" {
       name = "weekly-maintenance-1900"
       window = {
         start_date_time = "2025-01-01 19:00"
+        duration        = "04:00"
         time_zone       = "W. Europe Standard Time"
         recur_every     = "1Days"
       }
