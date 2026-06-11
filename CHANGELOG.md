@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.0](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/compare/v0.1.2...v0.2.0) (2026-06-11)
+
+
+### 🚀 Features
+
+* adding the missing duration windows in the window block ([#2](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/issues/2)) ([e3f533a](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/commit/e3f533a4491eade06346706b97cf45d183cfc72d))
+
 ## [0.1.2](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/compare/v0.1.1...v0.1.2) (2025-10-03)
 
 
@@ -17,4 +24,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.1](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/compare/v0.1.0...v0.1.1) (2025-03-11)
 
 ## 0.1.0 (2025-03-10)
-
