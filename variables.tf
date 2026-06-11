@@ -15,6 +15,7 @@ variable "maintenance_configurations" {
     in_guest_user_patch_mode = optional(string, "User")
     window = optional(object({
       start_date_time = optional(string)
+      duration        = optional(string)
       time_zone       = optional(string, "W. Europe Standard Time")
       recur_every     = optional(string, "1Weeks")
     }), {})
@@ -85,6 +86,7 @@ A map of objects containing the configuration for the maintenance configurations
 - `in_guest_user_patch_mode` - (Required) The in-guest user patch mode of the maintenance configuration.
 - `window` - (Required) The window block as defined below.
   `start_date_time` - (Optional) The start date time of the maintenance window.
+  `duration` - (Optional) The duration of the maintenance window in HH:mm format.
   `time_zone` - (Optional) The time zone of the maintenance window.
   `recur_every` - (Optional) The recurrence of the maintenance window.
 - `install_patches` - (Required) The install_patches block as defined below.

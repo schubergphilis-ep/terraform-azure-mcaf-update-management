@@ -21,6 +21,7 @@ resource "azurerm_maintenance_configuration" "this" {
 
   window {
     start_date_time = each.value.window.start_date_time == null ? local.custom_datetime : each.value.window.start_date_time
+    duration        = each.value.window.duration
     time_zone       = each.value.window.time_zone
     recur_every     = each.value.window.recur_every
   }
