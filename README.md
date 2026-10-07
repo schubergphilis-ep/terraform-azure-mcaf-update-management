@@ -44,6 +44,51 @@ you can set this on the vm's if you use the SBP module with the following proper
   - `recur_every: Month Third Sunday Offset6` (recurs 6 days after the third Sunday of every month)
 
 
+## Snapshot-managed include lists
+
+Set `snapshot_managed = true` on a maintenance configuration when an external process owns its include lists,
+for example [terraform-azure-mcaf-update-management-snapshot](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management-snapshot),
+which freezes the pending updates weekly or monthly so test and prod install the same set.
+
+What changes for that configuration:
+
+- Terraform ignores `kb_numbers_to_include` and `package_names_mask_to_include` after creation, so the external
+  process can rewrite them without drift. All other settings stay under Terraform.
+- It is tagged `aum-snapshot = managed`, which is how the snapshot process finds it.
+- The include lists you configure are stored in the tags `aum-snapshot-linux-extras` and
+  `aum-snapshot-windows-extras` (comma-separated), so the snapshot process can keep adding them, e.g.
+  `datadog-agent=*`. Tag values are limited to 256 characters.
+- An OS block without classifications and without includes (the Linux default without extras) gets a
+  placeholder include that never matches, because the Maintenance API rejects an empty block. It installs nothing
+  until the first snapshot.
+- Switching `snapshot_managed` on an existing configuration moves it to a different resource in this module
+  (`snapshot_managed` instead of `this`). Terraform then deletes the maintenance configuration and creates a new
+  one, and recreates its assignments. Plan it outside a patch window, or move the state first so nothing is
+  recreated:
+  `terraform state mv 'module.patching.azurerm_maintenance_configuration.this["weekly1900"]' 'module.patching.azurerm_maintenance_configuration.snapshot_managed["weekly1900"]'`
+
+Classifications are installed on top of the frozen list. For snapshot-managed configurations they default to `[]`
+(Linux) and `["Definition"]` (Windows, Defender platform updates), so only the snapshot is installed. Choose which
+updates go into the snapshot (for example only critical and security) in the snapshot module, not here. Setting
+`Critical` or `Security` explicitly on a snapshot-managed configuration shows a warning, because it installs every
+critical and security update regardless of the snapshot.
+
+The outputs `resource_group_name` and `snapshot_managed_configuration_ids` can be passed to the snapshot module.
+
+```hcl
+maintenance_configurations = {
+  weekly1900 = {
+    name             = "weekly-maintenance-1900"
+    snapshot_managed = true
+    window           = { start_date_time = "2025-01-01 19:00", recur_every = "1Week Monday" }
+    assignments      = { patchgroup1 = { tag_values = ["patchgroup1"] } }
+    install_patches = {
+      linux = { package_names_mask_to_include = ["datadog-agent=*"] }
+    }
+  }
+}
+```
+
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
 

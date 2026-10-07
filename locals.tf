@@ -40,4 +40,35 @@ locals {
     for pair in local.assignment_pairs :
     "${pair.config_key}-${pair.assignment_key}" => pair
   }
+
+  # Configurations whose include lists are owned by an external snapshot process.
+  managed_configurations   = { for k, v in var.maintenance_configurations : k => v if v.snapshot_managed }
+  unmanaged_configurations = { for k, v in var.maintenance_configurations : k => v if !v.snapshot_managed }
+
+  # The Maintenance API rejects an OS block without classifications and without includes.
+  # Snapshot-managed configurations may start that way, so they get an include that never matches
+  # until the snapshot process writes the first list.
+  snapshot_placeholder = {
+    linux   = "aum-snapshot-placeholder=0.0.0"
+    windows = "9999999"
+  }
+
+  configuration_ids = merge(
+    { for k, v in azurerm_maintenance_configuration.this : k => v.id },
+    { for k, v in azurerm_maintenance_configuration.snapshot_managed : k => v.id },
+  )
+
+  # Classifications are installed on top of the include list. Snapshot-managed configurations default to
+  # nothing extra (Linux) and Defender platform updates only (Windows), so the frozen snapshot is all that
+  # gets installed. Explicitly set values always win.
+  classifications = {
+    for k, v in var.maintenance_configurations : k => {
+      linux = v.install_patches.linux.classifications_to_include != null ? v.install_patches.linux.classifications_to_include : (
+        v.snapshot_managed ? [] : ["Critical", "Security"]
+      )
+      windows = v.install_patches.windows.classifications_to_include != null ? v.install_patches.windows.classifications_to_include : (
+        v.snapshot_managed ? ["Definition"] : ["Critical", "Security", "Definition"]
+      )
+    }
+  }
 }
