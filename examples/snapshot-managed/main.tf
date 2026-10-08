@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = ">= 4, < 6"
     }
-    azapi = {
-      source  = "azure/azapi"
-      version = "~> 2.0"
-    }
   }
 }
 
@@ -17,13 +13,13 @@ terraform {
 # Works the same on azurerm 4.x.
 provider "azurerm" {
   resource_provider_registrations = "none"
-  resource_providers_to_register  = ["Microsoft.Maintenance", "Microsoft.Logic", "Microsoft.Insights"]
+  resource_providers_to_register  = ["Microsoft.Maintenance"]
   features {}
 }
 
-data "azurerm_client_config" "current" {}
-
-# Weekly patch groups, Linux and Windows mixed, with the include lists handed to the snapshot.
+# Weekly patch groups, Linux and Windows mixed, with the include lists handed to an external snapshot,
+# typically terraform-azure-mcaf-update-management-snapshot pointed at module.updates.resource_group_name:
+#   https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management-snapshot
 # snapshot_managed = true also defaults the classifications to [] (Linux) and ["Definition"] (Windows),
 # so only the snapshot, Defender platform updates and the Datadog agent are installed.
 module "updates" {
@@ -48,12 +44,4 @@ module "updates" {
       install_patches  = { linux = { package_names_mask_to_include = ["datadog-agent=*"] } }
     }
   }
-}
-
-# Freezes the pending updates every Monday 07:00 and writes them into both configurations.
-module "update_snapshot" {
-  source = "github.com/schubergphilis-ep/terraform-azure-mcaf-update-management-snapshot"
-
-  resource_group_name = module.updates.resource_group_name
-  subscription_ids    = [data.azurerm_client_config.current.subscription_id]
 }
