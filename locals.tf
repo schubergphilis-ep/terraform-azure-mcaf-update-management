@@ -54,8 +54,8 @@ locals {
   }
 
   configuration_ids = merge(
-    { for k, v in azurerm_maintenance_configuration.this : k => v.id },
-    { for k, v in azurerm_maintenance_configuration.snapshot_managed : k => v.id },
+    { for k, v in azurerm_maintenance_configuration.unmanaged : k => v.id },
+    { for k, v in azurerm_maintenance_configuration.managed : k => v.id },
   )
 
   # Classifications are installed on top of the include list. Snapshot-managed configurations default to

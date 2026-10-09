@@ -10,7 +10,7 @@ resource "azurerm_resource_group" "this" {
   )
 }
 
-resource "azurerm_maintenance_configuration" "this" {
+resource "azurerm_maintenance_configuration" "unmanaged" {
   for_each = local.unmanaged_configurations
 
   name                     = each.value.name == null ? each.key : each.value.name
@@ -56,9 +56,9 @@ resource "azurerm_maintenance_configuration" "this" {
   }
 }
 
-# Same as "this", but the include lists are owned by an external snapshot process.
+# Same as "unmanaged", but the include lists are owned by an external snapshot process.
 # lifecycle.ignore_changes cannot be conditional, hence a second resource.
-resource "azurerm_maintenance_configuration" "snapshot_managed" {
+resource "azurerm_maintenance_configuration" "managed" {
   for_each = local.managed_configurations
 
   name                     = each.value.name == null ? each.key : each.value.name
@@ -147,4 +147,9 @@ check "snapshot_managed_classifications" {
     ])
     error_message = "Snapshot-managed maintenance configuration(s) ${join(", ", [for k, v in local.managed_configurations : k if length(setintersection(toset(concat(local.classifications[k].linux, local.classifications[k].windows)), toset(["Critical", "Security"]))) > 0])} include Critical or Security classifications. Those install every critical/security update on top of the frozen snapshot. Remove classifications_to_include to use the snapshot defaults ([] for Linux, [\"Definition\"] for Windows) and install only the snapshot."
   }
+}
+
+moved {
+  from = azurerm_maintenance_configuration.this
+  to   = azurerm_maintenance_configuration.unmanaged
 }

@@ -61,11 +61,7 @@ What changes for that configuration:
 - An OS block without classifications and without includes (the Linux default without extras) gets a
   placeholder include that never matches, because the Maintenance API rejects an empty block. It installs nothing
   until the first snapshot.
-- Switching `snapshot_managed` on an existing configuration moves it to a different resource in this module
-  (`snapshot_managed` instead of `this`). Terraform then deletes the maintenance configuration and creates a new
-  one, and recreates its assignments. Plan it outside a patch window, or move the state first so nothing is
-  recreated:
-  `terraform state mv 'module.patching.azurerm_maintenance_configuration.this["weekly1900"]' 'module.patching.azurerm_maintenance_configuration.snapshot_managed["weekly1900"]'`
+- Switching `snapshot_managed` on an existing configuration recreates it, see [UPGRADING.md](UPGRADING.md).
 
 Classifications are installed on top of the frozen list. For snapshot-managed configurations they default to `[]`
 (Linux) and `["Definition"]` (Windows, Defender platform updates), so only the snapshot is installed. Choose which
@@ -73,7 +69,7 @@ updates go into the snapshot (for example only critical and security) in the sna
 `Critical` or `Security` explicitly on a snapshot-managed configuration shows a warning, because it installs every
 critical and security update regardless of the snapshot.
 
-The outputs `resource_group_name` and `snapshot_managed_configuration_ids` can be passed to the snapshot module.
+Pass the output `resource_group_name` to the snapshot module. It finds the configurations by the `aum-snapshot` tag.
 
 ```hcl
 maintenance_configurations = {
@@ -95,13 +91,13 @@ maintenance_configurations = {
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9 |
-| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | >= 4, < 6 |
+| <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) | >= 4 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | >= 4, < 6 |
+| <a name="provider_azurerm"></a> [azurerm](#provider\_azurerm) | >= 4 |
 
 ## Modules
 
@@ -112,8 +108,8 @@ No modules.
 | Name | Type |
 |------|------|
 | [azurerm_maintenance_assignment_dynamic_scope.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/maintenance_assignment_dynamic_scope) | resource |
-| [azurerm_maintenance_configuration.snapshot_managed](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/maintenance_configuration) | resource |
-| [azurerm_maintenance_configuration.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/maintenance_configuration) | resource |
+| [azurerm_maintenance_configuration.managed](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/maintenance_configuration) | resource |
+| [azurerm_maintenance_configuration.unmanaged](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/maintenance_configuration) | resource |
 | [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 
 ## Inputs
@@ -133,7 +129,6 @@ No modules.
 | <a name="output_maintenance_configuration_ids"></a> [maintenance\_configuration\_ids](#output\_maintenance\_configuration\_ids) | Map of maintenance configuration key to resource ID, managed and unmanaged. |
 | <a name="output_resource_group_id"></a> [resource\_group\_id](#output\_resource\_group\_id) | ID of the resource group that holds the maintenance configurations. |
 | <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name) | Name of the resource group that holds the maintenance configurations. |
-| <a name="output_snapshot_managed_configuration_ids"></a> [snapshot\_managed\_configuration\_ids](#output\_snapshot\_managed\_configuration\_ids) | Map of maintenance configuration key to resource ID for configurations with `snapshot_managed = true`. |
 <!-- END_TF_DOCS -->
 
 **Issues**
