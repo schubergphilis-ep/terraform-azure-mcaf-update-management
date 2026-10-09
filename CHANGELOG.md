@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/compare/v0.2.0...v0.3.0) (2026-10-09)
+
+
+### 🚀 Features
+
+* add snapshot_managed option for externally owned include lists ([#4](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/issues/4)) ([2c55f4f](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/commit/2c55f4fe3297e994d15d04bc97c0842ee612b8df))
+
 ## [0.2.0](https://github.com/schubergphilis-ep/terraform-azure-mcaf-update-management/compare/v0.1.2...v0.2.0) (2026-06-11)
 
 
