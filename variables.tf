@@ -11,6 +11,7 @@ variable "location" {
 variable "maintenance_configurations" {
   type = map(object({
     name                     = optional(string)
+    snapshot_managed         = optional(bool, false)
     scope                    = optional(string, "InGuestPatch")
     in_guest_user_patch_mode = optional(string, "User")
     window = optional(object({
@@ -22,12 +23,12 @@ variable "maintenance_configurations" {
     install_patches = optional(object({
       reboot = optional(string, "IfRequired")
       linux = optional(object({
-        classifications_to_include    = optional(list(string), ["Critical", "Security"])
+        classifications_to_include    = optional(list(string))
         package_names_mask_to_exclude = optional(list(string))
         package_names_mask_to_include = optional(list(string))
       }), {})
       windows = optional(object({
-        classifications_to_include = optional(list(string), ["Critical", "Security", "Definition"])
+        classifications_to_include = optional(list(string))
         kb_numbers_to_exclude      = optional(list(string))
         kb_numbers_to_include      = optional(list(string))
       }), {})
@@ -82,6 +83,7 @@ variable "maintenance_configurations" {
 A map of objects containing the configuration for the maintenance configurations to be created.
 
 - `name` - (Required) The name of the maintenance configuration.
+- `snapshot_managed` - (Optional) Hand the include lists over to an external snapshot process (for example a Logic App that freezes the pending updates per month). When `true`, the classification defaults become `[]` (Linux) and `["Definition"]` (Windows), Terraform ignores changes to `kb_numbers_to_include` and `package_names_mask_to_include` after creation, tags the configuration with `aum-snapshot = managed`, and stores the configured include lists in the tags `aum-snapshot-linux-extras` / `aum-snapshot-windows-extras` so the snapshot process can keep them. Changing this value on an existing configuration replaces it. Defaults to `false`.
 - `scope` - (Required) The scope of the maintenance configuration.
 - `in_guest_user_patch_mode` - (Required) The in-guest user patch mode of the maintenance configuration.
 - `window` - (Required) The window block as defined below.
@@ -92,11 +94,11 @@ A map of objects containing the configuration for the maintenance configurations
 - `install_patches` - (Required) The install_patches block as defined below.
   `reboot` - (Optional) The reboot of the install patches.
   `linux` - (Optional) The linux block as defined below.
-    `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are Critical, Security and Other.
+    `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are Critical, Security and Other. Defaults to `["Critical", "Security"]`, or `[]` when `snapshot_managed = true` so only the snapshot is installed.
     `package_names_mask_to_exclude` - (Optional) List of package names to be excluded from patching.
     `package_names_mask_to_include` - (Optional) List of package names to be included for patching.
   `windows` - (Optional) The windows block as defined below.
-    `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are Critical, Security, UpdateRollup, FeaturePack, ServicePack, Definition, Tools and Updates.
+    `classifications_to_include` - (Optional) List of Classification category of patches to be patched. Possible values are Critical, Security, UpdateRollup, FeaturePack, ServicePack, Definition, Tools and Updates. Defaults to `["Critical", "Security", "Definition"]`, or `["Definition"]` when `snapshot_managed = true` so only the snapshot plus Defender platform updates are installed.
     `kb_numbers_to_exclude` - (Optional) List of KB numbers to be excluded from patching.
     `kb_numbers_to_include` - (Optional) List of KB numbers to be included for patching.
 - `assignments` - (Optional) A map of objects containing the configuration for the maintenance assignments to be created.
